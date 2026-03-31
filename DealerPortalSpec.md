@@ -19,6 +19,9 @@ Issued By: Daniel Niven-Hulett
 - [Dealership](#dealership)
     - [Dealership - Data](#dealership---data)
     - [Dealership - Operations](#dealership---operations)
+- [Branch](#branch)
+    - [Branch - Data](#branch---data)
+    - [Branch - Operations](#branch---operations)
 - [Customer](#customer)
     - [Customer - Data](#customer---data)
     - [Customer - Operations](#customer---operations)
@@ -35,11 +38,13 @@ Issued By: Daniel Niven-Hulett
     - [Quote - Status](#quote---status)
     - [Quote - Workflow](#quote---workflow)
     - [Quote - Operations](#quote---operations)
+    - [Quote - UI](#quote---ui)
 - [Dealer Training and Resources](#dealer-training-and-resources)
     - [Blog](#blog)
     - [Blog - Operations](#blog---operations)
 - [Customer Web Page](#customer-web-page)
     - [Warranty Workflow](#warranty-workflow)
+- [Brochure](#brochure)
 - [Requires Further Discussion](#requires-further-discussion)
 
 # Overview
@@ -94,6 +99,7 @@ All fields are compulsory unless otherwise stated
 | Password | Appropriate security measures should be taken when storing password. |
 | Authorisation | Dictates what features are available to the user. |
 | Dealership | What dealership does the user belong to. Dictates what data is viewable by the user. |
+| Branch |  |
 
 ## User - Operations
 
@@ -138,19 +144,45 @@ All fields are compulsory unless otherwise stated
 |---|---|
 | Name |  |
 | Logo | <ul><li>Optional</li></ul> |
-| Street Address |  |
-| City |  |
-| State |  |
-| Post Code |  |
 
 ## Dealership - Operations
 
 | | Admin | Dealer Admin | Dealer |
 | --- | :---: | :---: | :---: |
 | Can create a new dealership | ✓ | x | x |
-| Can edit a dealership | ✓ | ✓ | x |
+| Can edit a dealership | ✓ | ✓ <sup>1 | x |
 | Can archive a dealership | ✓ | x | x |
 | Can view dealerships | ✓ | x | x |
+
+(1) Only the dealership to which that user belongs
+
+# Branch
+
+A branch refers to the physical location of a dealership. A dealership may have one or multiple branches. These branches are all the same company / dealership, however they are present in multiple separate physical locations.
+
+## Branch - Data
+
+All fields are compulsory unless otherwise stated
+| Field | Notes |
+|---|---|
+| Dealership |  |
+| Name |  |
+| Street Address |  |
+| City |  |
+| State |  |
+| Post Code |  |
+
+## Branch - Operations
+
+| | Admin | Dealer Admin | Dealer |
+| --- | :---: | :---: | :---: |
+| Can create a new branch | ✓ <sup>1 | ✓ <sup>2 | x |
+| Can edit a branch | ✓ <sup>1 | ✓ <sup>2 | x |
+| Can archive a branch | ✓ <sup>1 | ✓ <sup>2 | x |
+| Can view branches | ✓ <sup>1 | ✓ <sup>2 | ✓ <sup>2 |
+
+(1) For any dealership  
+(2) For the same dealership as that user  
 
 # Customer
 
@@ -314,6 +346,10 @@ flowchart TD
 (4) Can filter by dealership
 
 ## Quote - UI
+
+### Customer Facing
+
+The quote that the customer receives
 - Dealership / branch name, address and contact details are displayed on the quote
 - Dealership logo is displayed on the quote if a logo has been provided
 - Quote contents are contained in a table
@@ -328,6 +364,11 @@ flowchart TD
 - The "More Info" column contains a link to the relevant section of the brochure web page for each product listed in a quote
 - The "More Info" column is left empty for pre-delivery, delivery and discounts
 - As an alternative to the "More Info" column, each product could be a link to the relevant section of the brochure web page
+
+### User Facing 
+
+The tool a user interfaces with for building a quote
+- Options have a "more info" button next to them that links to the relevant section of the brochure web page
 
 # Dealer Training and Resources
 
@@ -384,6 +425,13 @@ flowchart TD
     J --> L([Serial number is marked as having a warranty registered])
 ```
 
+# Brochure
+- purpose is marketing and education for both customers and dealers
+- simple static web page
+- public facing
+- one brochure page for all options
+- each entry has an option name, description, photo, list of compatible machines, any other noteworthy information *e.g.* requires certain level of oil flow
+
 # Requires Further Discussion
 
 ## General
@@ -394,10 +442,14 @@ flowchart TD
 - If so, what are we displaying here?
 
 ## User
+- Can a user be attached to multiple branches?
 - Have the ability to show the password text by the user clicking a button?
     - Is this viewing your own password?
     - Is this an admin being able to view any users password?
     - Do we need this if a user can reset their own password?
+
+## Stock Machines
+- Need the ability to transfer stock from one branch to another?
 
 ## Notifications
 - Whole thing needs to be fleshed out
@@ -442,3 +494,11 @@ filter articles by keywords
 - do we need this?
 - does the customer email the dealership?
 - do we need a speparate section of the web app for a dealer to change ownership details?
+
+## Digital Signatures
+- do we need DocuSign or can we just use our own system? (I think our own system will be fine)
+- do we need something more than a confirm button? *e.g.* I [enter name] hereby accept this whatever whatever and then a confirm button.
+- probably need actual legal advice
+- do some research on digital signatures:
+    - https://sprintlaw.com.au/articles/digital-signatures-are-they-legally-binding-in-australia/
+    - https://www.affinitylawyers.com.au/electronic-signatures-when-is-it-safe-to-sign-electronically/
