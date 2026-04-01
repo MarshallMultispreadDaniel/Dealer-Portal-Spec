@@ -33,12 +33,18 @@ Issued By: Daniel Niven-Hulett
     - [Option - Operations](#option---operations)
 - [Machine-Option Relationship](#machine-option-relationship)
     - [Machine-Option Relationship - Operations](#machine-option-relationship---operations)
-- [Quote](#quote)
-    - [Quote - Data](#quote---data)
-    - [Quote - Status](#quote---status)
-    - [Quote - Workflow](#quote---workflow)
-    - [Quote - Operations](#quote---operations)
-    - [Quote - UI](#quote---ui)
+- [Order](#order)
+    - [Order - Data](#order---data)
+    - [Order - Status](#order---status)
+    - [Order - Workflow](#order---workflow)
+    - [Order - Operations](#order---operations)
+    - [Order - Notifications](#order---notifications)
+- [Sale](#sale)
+    - [Sale - Data](#sale---data)
+    - [Sale - Status](#sale---status)
+    - [Sale - Workflow](#sale---workflow)
+    - [Sale - Operations](#sale---operations)
+    - [Sale - UI](#sale---ui)
 - [Dealer Training and Resources](#dealer-training-and-resources)
     - [Blog](#blog)
     - [Blog - Operations](#blog---operations)
@@ -130,7 +136,7 @@ All fields are compulsory unless otherwise stated
 # Notifications
 
 - Users may receive notifications / emails based on certain events (*e.g.* a
-quote being accepted)
+sale being accepted)
 - Users can toggle which notifications they receive
 
 # Dealership
@@ -273,86 +279,158 @@ Not all options are compatible with all machines. A machine-option relationship 
 | Can archive a machine-option relationship | ✓ | x | x |
 | Can view machine-option relationships | ✓ | ✓ | ✓ |
 
-# Quote
+# Order
 
-## Quote - Data
+An "order" refers to the details of a purchase of a Roesner machine and options by a dealership. This is strictly a transaction between a dealership and Roesner's. This not a transaction between a customer and a dealership. A dealership may order a machine from Roesner's at the price defined by Roesner's and then later quote and sell that machine to a customer at a different price (*e.g.* adding an extra margin on top or selling at a discount and taking a loss).
+
+## Order - Data
 
 All fields are compulsory unless otherwise stated.
 | Field | Notes |
 |---|---|
-| Machine | <ul><li>A quote must contain exactly one machine</li></ul> |
-| Options | <ul><li>Optional</li><li>May be zero, one or multiple options as part of a quote</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li></ul> |
-| Price of pre-delivery |  |
-| Price of delivery |  |
-| General Discount | <ul><li>Optional</li><li>May be zero or one general discount applied to a quote</li><li>This may be either a percentage of the price or a fixed amount</li><li>If a percentage, it is applied to the sum of the machine and option prices (does not include disount for trade-in, price of pre-delivery or price of delivery)</li><li>There are not discounts on a per product basis</li></ul> |
-| Discount for trade-in | <ul><li>Optional</li><li>If included, should be a fixed amount (*i.e.* not a percentage)</li></ul> |
-| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the price of the machine, options, pre-delivery and delivery minus the sum of the value of the discounts at the time the quote is created</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of quotes generated in the past</li></ul> |
-| Quote Status |  |
-| Customer | <ul><li>This includes all of that customer details (*i.e.* name, address, *etc.*)</li></ul> |
+| Machine | <ul><li>An order must contain exactly one machine</li></ul> |
+| Options | <ul><li>Optional</li><li>May be zero, one or multiple options</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li></ul> |
+| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the price of the machine and options</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of orders generated in the past</li></ul> |
+| Order Status |  |
+| Customer | <ul><li>Optional</li><li>If there is no customer, this will be a "stock" machine</li><li>If there is a customer, this includes all of that customers details (*i.e.* name, address, *etc.*)</li></ul> |
 | Dealership |  |
-| Timestamp Created |  |
-| Status Set To Cancelled - Timestamp | <ul><li>Optional</li><li>The time and date that the status was set to Cancelled</li></ul> |
-| Status Set To Cancelled - User | <ul><li>Optional</li><li>The user who set the status to Cancelled</li></ul> |
-| Status Set To Accepted - Timestamp | <ul><li>Optional</li><li>The time and date that the status was set to Accepted</li></ul> |
-| Status Set To Accepted - User | <ul><li>Optional</li><li>The user who set the status to Accepted</li></ul> |
-| Status Set To Ordered - Timestamp | <ul><li>Optional</li><li>The time and date that the status was set to Ordered</li></ul> |
-| Status Set To Ordered - User | <ul><li>Optional</li><li>The user who set the status to Ordered</li></ul> |
+| Branch |  |
+| Order Status Update Log | <ul><li>Each time the status of an order is updated, this should be recorded</li><li>This includes the order being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include a what the order status was previously, what the the order status was changed to, a timestamp and the user that updated the order status</li></ul> |
 
-## Quote - Status
+## Order - Status
 
-A quote status can be set to one of the four statuses below.
+An order status can be set to one of the statuses below.
 
 | Status | Description |
 |---|---|
-| Drafted | The quote has been created  |
-| Cancelled | Customer has declined to proceed with the purchase or the quote was cancelled for some other reason |
-| Accepted | Customer has agreed to the purchase |
-| Odered | Quote details have been entered into the Roesner production system |
+| Draft | The order has been created, but may require further edits |
+| Placed | The order has been finalised and has been submitted to Roesner's |
+| Ordered | Order has been accepted by Roesner's and order details have been entered into the Roesner production system |
+| In Production | Order has begun production |
+| Ready For Delivery | Order has finished production and is awaiting delivery |
+| In Transit | Order is currently in transit to the dealership / branch |
+| Delivered | Order has been delivered to the dealership / branch |
 
-## Quote - Workflow
+## Order - Workflow
 
 ```mermaid
 flowchart TD
-    A([Dealer generates a quote. Quote status is Drafted.]) --> B[Dealer transfers quote details to their own letterhead / format]
-    B --> C[Dealer emails quote details to customer]
-    C --> K{Customer emails response to dealer}
-    K -->|Customer accepts| D[Dealer sets quote status to Accepted]
-    K -->|Customer does not accept| E([Dealer sets quote status to Cancelled])
-    K -->|Customer requests a change| H[Dealer edits the quote]
-    H --> B
-    D --> F[Admins receive a notification that a new quote has been accepted]
-    F --> G[An admin manually transfers the accepted quote to the Roesner production system]
-    G --> I[That admin sets the quote status to Ordered]
-    I --> J([All dealers from the dealership that generated the quote receive a notification that the quote has been ordered])
+    A([Dealer generates an order. Order status is Draft.]) --> B{Dealer wishes to continue with order?}
+    B -->|Yes| C[Dealer sets order status to Placed]
+    B -->|No| D([Dealer deletes order])
+    C --> E[Admin enters details into Roesner production system and sets order status to Accepted.]
+    E --> F[Order begins production. Admin sets order status to In Production.]
+    F --> G[Order completes production. Admin sets order status to Ready For Delivery.]
+    G --> H[Order is collected for delivery. Admin sets order status to In Transit.]
+    H --> I([Order is received. Admin sets order status to Delivered? Should a dealer do this instead?])
 ```
 
-## Quote - Operations
+## Order - Operations
 
 |  | Admin | Dealer Admin | Dealer |
 | --- | :---: | :---: | :---: |
-| Can create a new quote | ✓ | ✓ | ✓ |
-| Can edit quote details while it is in Drafted status | ✓ | ✓ | ✓ |
-| Can edit quote details while it is in Cancelled, Accepted or Ordered status | x | x | x |
-| Can update a quote status from Drafted to Cancelled | ✓ | ✓ | ✓ |
-| Can update a quote status from Drafted to Accepted | ✓ | ✓ | ✓ |
-| Can update a quote status from Accepted to Ordered | ✓ | x | x |
-| Can archive a quote | x | x | x |
+| Can create a new order | ✓ | ✓ | ✓ |
+| Can edit order details while in Draft status | ✓ | ✓ | ✓ |
+| Can edit order details while in status other than Draft | x | x | x |
+| Can update order status from Drafted to Placed | ✓ | ✓ | ✓ |
+| Can update order status from Placed to Accepted | ✓ | x | x |
+| Can update order status from Accepted to In Production | ✓ | x | x |
+| Can update order status from In Production to Ready For Delivery | ✓ | x | x |
+| Can update order status from Ready For Delivery to In Transit | ✓ | x | x |
+| Can update order status from Ready For In Transit to Delivered | ✓ | x | x |
+| Can archive an order while in Draft status | ✓ | ✓ | ✓ |
+| Can archive an order while in status other than Draft | x | x | x |
+| Can view orders | ✓ <sup>1, 3, 4 | ✓ <sup>2, 3 | ✓ <sup>2, 3 |
+
+(1) For any dealership  
+(2) For the dealership that the user belongs to  
+(3) Can filter by time created and status  
+(4) Can filter by dealership
+
+## Order - Notifications
+
+- all admins receive a notification when order status is updated to Placed
+
+# Sale
+
+An "sale" refers to the details of a proposed purchase of a Roesner machine and options by a customer from a dealership. This is not a transaction between a dealership and a Roesner's. A dealership may sell a machine to a customer at a different price to what the dealership paid for it (*e.g.* adding an extra margin on top or selling at a discount and taking a loss). They may also add extra charges (*e.g.* for delivery). A "sale" might be proposed to but not accepted by a customer (*e.g.* a machine is offered to a customer at a given price, but the customer does not accept the offer). This information is still important to track. Thus a "sale" is not necessarily a confirmed transaction, but simply the details around a proposed transaction that may or may not occuer / have occured.
+
+## Sale - Data
+
+All fields are compulsory unless otherwise stated.
+| Field | Notes |
+|---|---|
+| Machine | <ul><li>A sale must contain exactly one machine</li></ul> |
+| Options | <ul><li>Optional</li><li>May be zero, one or multiple options</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li></ul> |
+| Price of pre-delivery |  |
+| Price of delivery |  |
+| General Discount | <ul><li>Optional</li><li>May be zero or one general discount applied to a sale</li><li>This may be either a percentage of the price or a fixed amount</li><li>If a percentage, it is applied to the sum of the machine and option prices (does not include disount for trade-in, price of pre-delivery or price of delivery)</li><li>There are not discounts on a per product basis</li></ul> |
+| Trade-in Discount | <ul><li>Optional</li><li>If included, should be a fixed amount (*i.e.* not a percentage)</li></ul> |
+| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the price of the machine, options, pre-delivery and delivery minus the sum of the value of the discounts at the time the sale is created</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of sales generated in the past</li></ul> |
+| Sale Status |  |
+| Customer | <ul><li>This includes all of that customer details (*i.e.* name, address, *etc.*)</li></ul> |
+| Dealership |  |
+| Sale Status Update Log | <ul><li>Each time the status of a sale is updated, this should be recorded</li><li>This includes the sale being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include a what the sale status was previously, what the the sale status was changed to, a timestamp and the user that updated the sale status</li></ul> |
+
+## Sale - Status
+
+A sale status can be set to one of the statuses below.
+
+| Status | Description |
+|---|---|
+| Drafted | The sale has been created  |
+| Cancelled | Customer has declined to proceed with the purchase or the sale was cancelled for some other reason |
+| Accepted | Customer has agreed to the purchase |
+| Odered | Sale details have been entered into the Roesner production system |
+
+## Sale - Workflow
+
+```mermaid
+flowchart TD
+    A([Dealer generates a sale. Sale status is Drafted.]) --> B[Dealer transfers sale details to their own letterhead / format]
+    B --> C[Dealer emails sale details to customer]
+    C --> K{Customer emails response to dealer}
+    K -->|Customer accepts| D[Dealer sets sale status to Accepted]
+    K -->|Customer does not accept| E([Dealer sets sale status to Cancelled])
+    K -->|Customer requests a change| H[Dealer edits the sale]
+    H --> B
+    D --> F[Admins receive a notification that a new sale has been accepted]
+    F --> G[An admin manually transfers the accepted sale to the Roesner production system]
+    G --> I[That admin sets the sale status to Ordered]
+    I --> J([All dealers from the dealership that generated the sale receive a notification that the sale has been ordered])
+```
+
+## Sale - Operations
+
+|  | Admin | Dealer Admin | Dealer |
+| --- | :---: | :---: | :---: |
+| Can create a new sale | ✓ | ✓ | ✓ |
+| Can edit sale details while it is in Drafted status | ✓ | ✓ | ✓ |
+| Can edit sale details while it is in Cancelled, Accepted or Ordered status | x | x | x |
+| Can update a sale status from Drafted to Cancelled | ✓ | ✓ | ✓ |
+| Can update a sale status from Drafted to Accepted | ✓ | ✓ | ✓ |
+| Can update a sale status from Accepted to Ordered | ✓ | x | x |
+| Can archive a sale | x | x | x |
 | Can view quotes | ✓ <sup>1, 3, 4 | ✓ <sup>2, 3 | ✓ <sup>2, 3 |
-| Can download quote data as csv | ✓ | x | x |
+| Can download sale data as csv | ✓ | x | x |
 
 (1) For any dealership  
 (2) For the dealership that the user belongs to  
 (3) Can filter by time created, customer and status  
 (4) Can filter by dealership
 
-## Quote - UI
+## Sale - Notifications
+
+- all admins receive a notification when sale status is updated to Accepted?
+
+## Sale - UI
 
 ### Customer Facing
 
 The quote that the customer receives
-- Dealership / branch name, address and contact details are displayed on the quote
-- Dealership logo is displayed on the quote if a logo has been provided
-- Quote contents are contained in a table
+- Dealership / branch name, address and contact details are displayed on the sale
+- Dealership logo is displayed on the sale if a logo has been provided
+- Sale contents are contained in a table
 - Table has a column for "Selected", "Name", "Price" and "More Info"
 - Machine is listed first
 - All selected options (if any) are listed next
@@ -360,14 +438,14 @@ The quote that the customer receives
 - Pre-delivery, delivery and discounts are listed next
 - Total price is listed last
 - For any item that has been selected, the "Selected" column should display a signifier (e.g. a tick or dot) to illustrate that the item is selected
-- For any item that has not been selected in the quote, the "Selected" column should be left empty
-- The "More Info" column contains a link to the relevant section of the brochure web page for each product listed in a quote
+- For any item that has not been selected in the sale, the "Selected" column should be left empty
+- The "More Info" column contains a link to the relevant section of the brochure web page for each product listed in a sale
 - The "More Info" column is left empty for pre-delivery, delivery and discounts
 - As an alternative to the "More Info" column, each product could be a link to the relevant section of the brochure web page
 
 ### User Facing 
 
-The tool a user interfaces with for building a quote
+The tool a user interfaces with for building a sale
 - Options have a "more info" button next to them that links to the relevant section of the brochure web page
 
 # Dealer Training and Resources
@@ -451,16 +529,34 @@ flowchart TD
 ## Stock Machines
 - Need the ability to transfer stock from one branch to another?
 
+## Parts
+- research below for how to handle parts system
+    - new holland 
+    - case ih parts
+- need to be able to handle serial number breaks e.g. before serial number 12000, all machines used a V2 i4m mild steel housing. after serial number 12000, machines instead used a V3 i4M stainless steel housing. so need to see which part is applicable to which serial number
+- display factory stock?
+- is this available to customers or just dealers?
+    - if for customers as well
+        - how do we handle payment? need a whole checkout system like shopify? and an account / login system?
+        - pricing? different for direct to customer vs for dealer
+        - the dealer must use a different system through the portal right? they would pay on their existing account
+
 ## Notifications
 - Whole thing needs to be fleshed out
 - Is there a separate section for notifications?
 - Can they be dismissed?
 - Should emails be sent too?
 
-## Quote
+## Order
+- should admin be able to cancel order after it has been placed?
+- should dealer be able to cancel sale after it has been placed but before it has been ordered / added to the production system?
+- should there be some extra pop-up like "are you sure you want to place this order? Yes / no"
+- should dealers receive a notification for order updates?
+
+## Sale
 - Should you be able to set a default value for predelivery per dealership?
 - Should you be able to set a default value for delivery per dealership?
-- What if someone accidentally sets a quote to accepted? 
+- What if someone accidentally sets a sale to accepted? 
     - Do we need a way to cancel?
     - Do we need an extra confirmation step *e.g.* "This will place an order! Are you sure you want to proceed?"
 
