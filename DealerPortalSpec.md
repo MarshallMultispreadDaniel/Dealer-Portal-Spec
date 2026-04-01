@@ -105,8 +105,8 @@ All fields are compulsory unless otherwise stated
 | Email | Should be insensitive to case (*e.g.* `AAA@mail.com` and `aaa@mail.com` should be treated as the same email address). |
 | Password | Appropriate security measures should be taken when storing password. |
 | Authorisation | Dictates what features are available to the user. |
-| Dealership | What dealership does the user belong to. Dictates what data is viewable by the user. |
-| Branch |  |
+| Dealership | See [Dealership](#dealership) |
+| Branch | See [Branch](#branch) |
 
 ## User - Operations
 
@@ -150,7 +150,7 @@ All fields are compulsory unless otherwise stated
 | Field | Notes |
 |---|---|
 | Name |  |
-| Logo | <ul><li>Optional</li></ul> |
+| Logo | Optional |
 
 ## Dealership - Operations
 
@@ -172,7 +172,7 @@ A branch refers to the physical location of a dealership. A dealership may have 
 All fields are compulsory unless otherwise stated
 | Field | Notes |
 |---|---|
-| Dealership |  |
+| Dealership | See [Dealership](#dealership) |
 | Name |  |
 | Street Address |  |
 | City |  |
@@ -209,7 +209,8 @@ All fields are compulsory unless otherwise stated
 | City |  |
 | State |  |
 | Post Code |  |
-| Dealership | Don't want dealers from one dealership to be able to access customer details from another dealership. Hence customer details should be tied to a dealership. |
+| Dealership | Don't want dealers from one dealership to be able to access customer details from another dealership. Hence customer details should be tied to a dealership. See [Dealership](#dealership) for more. |
+| Branch | See [Branch](#branch) |
 
 ## Customer - Operations
 
@@ -235,7 +236,8 @@ All fields are compulsory unless otherwise stated.
 | Field | Notes |
 |---|---|
 | Name |  |
-| Price |  |
+| Wholesale Price |  |
+| Recommended Retail Price |  |
 
 ## Machine - Operations
 
@@ -256,7 +258,8 @@ All fields are compulsory unless otherwise stated.
 | Field | Notes |
 |---|---|
 | Name |  |
-| Price |  |
+| Wholesale Price |  |
+| Recommended Retail Price |  |
 
 ## Option - Operations
 
@@ -289,14 +292,14 @@ An "order" refers to the details of a purchase of a Roesner machine and options 
 All fields are compulsory unless otherwise stated.
 | Field | Notes |
 |---|---|
-| Machine | <ul><li>An order must contain exactly one machine</li></ul> |
-| Options | <ul><li>Optional</li><li>May be zero, one or multiple options</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li></ul> |
+| Machine | <ul><li>An order must contain exactly one machine</li><li>See [Machine](#machine)</li></ul> |
+| Options | <ul><li>Optional</li><li>May be zero, one or multiple options</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li><li>See [Option](#option)</li></ul> |
 | Total Price | <ul><li>Total price should be a separate value calculated as the sum of the price of the machine and options</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of orders generated in the past</li></ul> |
-| Order Status |  |
-| Customer | <ul><li>Optional</li><li>If there is no customer, this will be a "stock" machine</li><li>If there is a customer, this includes all of that customers details (*i.e.* name, address, *etc.*)</li></ul> |
-| Dealership |  |
-| Branch |  |
-| Order Status Update Log | <ul><li>Each time the status of an order is updated, this should be recorded</li><li>This includes the order being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include a what the order status was previously, what the the order status was changed to, a timestamp and the user that updated the order status</li></ul> |
+| Order Status | <ul><li>See [Order - Status](#order---status)</li></ul> |
+| Customer | <ul><li>Optional</li><li>If there is no customer, this will be a "stock" machine</li><li>If there is a customer, this includes all of that customers details (*i.e.* name, address, *etc.*)</li><li>See [Customer](#customer)</li></ul> |
+| Dealership | <ul><li>See [Dealership](#dealership)</li></ul> |
+| Branch | <ul><li>See [Branch](#branch)</li></ul> |
+| Order Status Update Log | <ul><li>Each time the status of an order is updated, this should be recorded</li><li>This includes the order being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include what the order status was previously, what the the order status was changed to, a timestamp and the user that updated the order status</li></ul> |
 
 ## Order - Status
 
@@ -350,27 +353,27 @@ flowchart TD
 
 ## Order - Notifications
 
-- all admins receive a notification when order status is updated to Placed
+- All admins receive a notification when order status is updated to Placed
 
 # Sale
 
-An "sale" refers to the details of a proposed purchase of a Roesner machine and options by a customer from a dealership. This is not a transaction between a dealership and a Roesner's. A dealership may sell a machine to a customer at a different price to what the dealership paid for it (*e.g.* adding an extra margin on top or selling at a discount and taking a loss). They may also add extra charges (*e.g.* for delivery). A "sale" might be proposed to but not accepted by a customer (*e.g.* a machine is offered to a customer at a given price, but the customer does not accept the offer). This information is still important to track. Thus a "sale" is not necessarily a confirmed transaction, but simply the details around a proposed transaction that may or may not occuer / have occured.
+A "sale" refers to the details of a proposed purchase of a Roesner machine and options by a customer from a dealership. This is not a transaction between a dealership and a Roesner's. A dealership may sell a machine to a customer at a different price to what the dealership paid for it (*e.g.* adding an extra margin on top or selling at a discount and taking a loss). They may also add extra charges (*e.g.* for delivery). A "sale" might be proposed to but not accepted by a customer (*e.g.* a machine is offered to a customer at a given price, but the customer does not accept the offer). This information is still important to track. Thus a "sale" is not necessarily a confirmed transaction, but simply the details around a proposed transaction that may or may not occuer / have occured.
 
 ## Sale - Data
 
 All fields are compulsory unless otherwise stated.
 | Field | Notes |
 |---|---|
-| Machine | <ul><li>A sale must contain exactly one machine</li></ul> |
-| Options | <ul><li>Optional</li><li>May be zero, one or multiple options</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li></ul> |
+| Order | <ul><li>A sale must contain exactly one order</li><li>See [Order](#order)</li></ul> |
 | Price of pre-delivery |  |
 | Price of delivery |  |
 | General Discount | <ul><li>Optional</li><li>May be zero or one general discount applied to a sale</li><li>This may be either a percentage of the price or a fixed amount</li><li>If a percentage, it is applied to the sum of the machine and option prices (does not include disount for trade-in, price of pre-delivery or price of delivery)</li><li>There are not discounts on a per product basis</li></ul> |
 | Trade-in Discount | <ul><li>Optional</li><li>If included, should be a fixed amount (*i.e.* not a percentage)</li></ul> |
-| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the price of the machine, options, pre-delivery and delivery minus the sum of the value of the discounts at the time the sale is created</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of sales generated in the past</li></ul> |
-| Sale Status |  |
-| Customer | <ul><li>This includes all of that customer details (*i.e.* name, address, *etc.*)</li></ul> |
-| Dealership |  |
+| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the recommended retail prices of the products in the order, pre-delivery and delivery minus the sum of the value of the discounts at the time the sale is created</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of sales generated in the past</li></ul> |
+| Sale Status | <ul><li>See [Sale - Status](#sale---status)</li></ul> |
+| Customer | <ul><li>This includes all of that customer details (*i.e.* name, address, *etc.*)</li><li>See [Customer](#customer)</li></ul> |
+| Dealership | <ul><li>See [Dealership](#dealership)</li></ul> |
+| Branch | <ul><li>See [Branch](#branch)</li></ul> |
 | Sale Status Update Log | <ul><li>Each time the status of a sale is updated, this should be recorded</li><li>This includes the sale being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include a what the sale status was previously, what the the sale status was changed to, a timestamp and the user that updated the sale status</li></ul> |
 
 ## Sale - Status
@@ -422,7 +425,7 @@ flowchart TD
 
 ## Sale - Notifications
 
-- all admins receive a notification when sale status is updated to Accepted?
+- All admins receive a notification when sale status is updated to Accepted?
 
 ## Sale - UI
 
