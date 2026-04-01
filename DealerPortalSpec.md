@@ -44,6 +44,7 @@ Issued By: Daniel Niven-Hulett
     - [Sale - Status](#sale---status)
     - [Sale - Workflow](#sale---workflow)
     - [Sale - Operations](#sale---operations)
+    - [Sale - Notifications](#sale---notifications)
     - [Sale - UI](#sale---ui)
 - [Dealer Training and Resources](#dealer-training-and-resources)
     - [Blog](#blog)
