@@ -529,6 +529,9 @@ flowchart TD
 
 ## Stock Machines
 - Need the ability to transfer stock from one branch to another?
+- Should be placed on hold when a sale / quote is generated
+- Should we store the price of the machine at purchase from Roesner's?
+    - If a stock machine is bought from Roesner's for $30,000 and later the prices for that same machine increase, should the price for that machine be the new updated price? Or should it be the original price it was pruchased for?
 
 ## Parts
 - research below for how to handle parts system
