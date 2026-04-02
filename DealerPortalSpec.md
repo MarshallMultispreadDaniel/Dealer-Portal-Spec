@@ -294,12 +294,13 @@ All fields are compulsory unless otherwise stated.
 |---|---|
 | Machine | <ul><li>An order must contain exactly one machine</li><li>See [Machine](#machine)</li></ul> |
 | Options | <ul><li>Optional</li><li>May be zero, one or multiple options</li><li>An option must be compatible with the machine as dictated by the machine-option relationships</li><li>See [Option](#option)</li></ul> |
-| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the price of the machine and options</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of orders generated in the past</li></ul> |
+| Total Price | <ul><li>Total price should be a separate value calculated as the sum of the wholesale price of the machine and options</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of orders generated in the past</li></ul> |
 | Order Status | <ul><li>See [Order - Status](#order---status)</li></ul> |
-| Customer | <ul><li>Optional</li><li>If there is no customer, this will be a "stock" machine</li><li>If there is a customer, this includes all of that customers details (*i.e.* name, address, *etc.*)</li><li>See [Customer](#customer)</li></ul> |
 | Dealership | <ul><li>See [Dealership](#dealership)</li></ul> |
 | Branch | <ul><li>See [Branch](#branch)</li></ul> |
 | Order Status Update Log | <ul><li>Each time the status of an order is updated, this should be recorded</li><li>This includes the order being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include what the order status was previously, what the the order status was changed to, a timestamp and the user that updated the order status</li></ul> |
+| Sale | <ul><li>Optional</li><li>If there is no sale, this will be considered a "stock" machine</li><li>See [Sale](#sale)</li></ul> |
+
 
 ## Order - Status
 
@@ -345,6 +346,7 @@ flowchart TD
 | Can archive an order while in Draft status | ✓ | ✓ | ✓ |
 | Can archive an order while in status other than Draft | x | x | x |
 | Can view orders | ✓ <sup>1, 3, 4 | ✓ <sup>2, 3 | ✓ <sup>2, 3 |
+| Can download orders data as csv | ✓ | x | x |
 
 (1) For any dealership  
 (2) For the dealership that the user belongs to  
@@ -357,14 +359,14 @@ flowchart TD
 
 # Sale
 
-A "sale" refers to the details of a proposed purchase of a Roesner machine and options by a customer from a dealership. This is not a transaction between a dealership and a Roesner's. A dealership may sell a machine to a customer at a different price to what the dealership paid for it (*e.g.* adding an extra margin on top or selling at a discount and taking a loss). They may also add extra charges (*e.g.* for delivery). A "sale" might be proposed to but not accepted by a customer (*e.g.* a machine is offered to a customer at a given price, but the customer does not accept the offer). This information is still important to track. Thus a "sale" is not necessarily a confirmed transaction, but simply the details around a proposed transaction that may or may not occuer / have occured.
+A "sale" refers to the details of a proposed purchase of a Roesner machine and options by a customer from a dealership. This is not a transaction between a dealership and a Roesner's. A dealership may sell a machine to a customer at a different price to what the dealership paid for it (*e.g.* adding an extra margin on top or selling at a discount and taking a loss). They may also add extra charges (*e.g.* for delivery). A "sale" might be proposed to but not accepted by a customer (*e.g.* a machine is offered to a customer at a given price, but the customer does not accept the offer). This information is still important to track for analytics purposes. Thus a "sale" is not necessarily a confirmed transaction, but simply the details around a proposed transaction that may or may not occur / have occured.
 
 ## Sale - Data
 
 All fields are compulsory unless otherwise stated.
 | Field | Notes |
 |---|---|
-| Order | <ul><li>A sale must contain exactly one order</li><li>See [Order](#order)</li></ul> |
+| Order | <ul><li>Optional</li><li>A sale may contain either zero or one orders</li><li>A sale that does not contain an order can be considered a proposed transaction between a customer and a dealership</li><li>A sale that does contain an order can be considered a confirmed transaction between a customer and a dealership</li><li>See [Order](#order)</li></ul> |
 | Price of pre-delivery |  |
 | Price of delivery |  |
 | General Discount | <ul><li>Optional</li><li>May be zero or one general discount applied to a sale</li><li>This may be either a percentage of the price or a fixed amount</li><li>If a percentage, it is applied to the sum of the machine and option prices (does not include disount for trade-in, price of pre-delivery or price of delivery)</li><li>There are not discounts on a per product basis</li></ul> |
@@ -385,23 +387,26 @@ A sale status can be set to one of the statuses below.
 | Drafted | The sale has been created  |
 | Cancelled | Customer has declined to proceed with the purchase or the sale was cancelled for some other reason |
 | Accepted | Customer has agreed to the purchase |
-| Odered | Sale details have been entered into the Roesner production system |
+| Ordered | Sale details have been entered into the Roesner production system |
 
 ## Sale - Workflow
 
 ```mermaid
 flowchart TD
-    A([Dealer generates a sale. Sale status is Drafted.]) --> B[Dealer transfers sale details to their own letterhead / format]
-    B --> C[Dealer emails sale details to customer]
-    C --> K{Customer emails response to dealer}
+    A([Dealer generates a sale. Sale status is Drafted.]) --> N[Dealer can opt to either generate a new order for the sale or select a stock machine i.e. an existing order that does not yet have a sale associated with it]
+    N --> L{Does dealership use their own quote system?}
+    L -->|Yes| B[Dealer transfers sale details to their own letterhead / format]
+    L -->|No| M[Dealer uses the quote generated from the dealer portal]
+    B --> C[Dealer sends sale details to customer]
+    M --> C
+    C --> K{Customer responds to sale details}
     K -->|Customer accepts| D[Dealer sets sale status to Accepted]
     K -->|Customer does not accept| E([Dealer sets sale status to Cancelled])
     K -->|Customer requests a change| H[Dealer edits the sale]
-    H --> B
-    D --> F[Admins receive a notification that a new sale has been accepted]
-    F --> G[An admin manually transfers the accepted sale to the Roesner production system]
-    G --> I[That admin sets the sale status to Ordered]
-    I --> J([All dealers from the dealership that generated the sale receive a notification that the sale has been ordered])
+    H --> L
+    D --> F{Is this a new order or existing order?}
+    F -->|Existing order| O([Dealer sets status to Ordered. That order now has a sale associated with it so can no longer be sold.])
+    F -->|New order| G([A new order is automatically generated from the sale])
 ```
 
 ## Sale - Operations
@@ -413,7 +418,7 @@ flowchart TD
 | Can edit sale details while it is in Cancelled, Accepted or Ordered status | x | x | x |
 | Can update a sale status from Drafted to Cancelled | ✓ | ✓ | ✓ |
 | Can update a sale status from Drafted to Accepted | ✓ | ✓ | ✓ |
-| Can update a sale status from Accepted to Ordered | ✓ | x | x |
+| Can update a sale status from Accepted to Ordered | ✓ | ✓ | ✓ |
 | Can archive a sale | x | x | x |
 | Can view quotes | ✓ <sup>1, 3, 4 | ✓ <sup>2, 3 | ✓ <sup>2, 3 |
 | Can download sale data as csv | ✓ | x | x |
@@ -422,10 +427,6 @@ flowchart TD
 (2) For the dealership that the user belongs to  
 (3) Can filter by time created, customer and status  
 (4) Can filter by dealership
-
-## Sale - Notifications
-
-- All admins receive a notification when sale status is updated to Accepted?
 
 ## Sale - UI
 
