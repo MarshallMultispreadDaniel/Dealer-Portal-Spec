@@ -1,8 +1,8 @@
 
 # Roesner Dealer Portal - Software Requirements Specification
 
-Version: 0.4  
-Date: 26/03/2026   
+Version: 0.5  
+Date: 09/04/2026   
 Issued By: Daniel Niven-Hulett
 
 # Table of Contents
@@ -19,9 +19,9 @@ Issued By: Daniel Niven-Hulett
 - [Dealership](#dealership)
     - [Dealership - Data](#dealership---data)
     - [Dealership - Operations](#dealership---operations)
-- [Branch](#branch)
-    - [Branch - Data](#branch---data)
-    - [Branch - Operations](#branch---operations)
+- [Location](#location)
+    - [Location - Data](#location---data)
+    - [Location - Operations](#location---operations)
 - [Customer](#customer)
     - [Customer - Data](#customer---data)
     - [Customer - Operations](#customer---operations)
@@ -37,6 +37,7 @@ Issued By: Daniel Niven-Hulett
     - [Order - Data](#order---data)
     - [Order - Status](#order---status)
     - [Order - Workflow](#order---workflow)
+    - [Order - UI](#order---ui)
     - [Order - Operations](#order---operations)
     - [Order - Notifications](#order---notifications)
 - [Sale](#sale)
@@ -106,7 +107,7 @@ All fields are compulsory unless otherwise stated
 | Password | Appropriate security measures should be taken when storing password. |
 | Authorisation | Dictates what features are available to the user. |
 | Dealership | See [Dealership](#dealership) |
-| Branch | See [Branch](#branch) |
+| Location | See [Location](#location) |
 
 ## User - Operations
 
@@ -163,11 +164,11 @@ All fields are compulsory unless otherwise stated
 
 (1) Only the dealership to which that user belongs
 
-# Branch
+# Location
 
-A branch refers to the physical location of a dealership. A dealership may have one or multiple branches. These branches are all the same company / dealership, however they are present in multiple separate physical locations.
+A location refers to the physical location of a dealership. A dealership may have one or multiple locations.
 
-## Branch - Data
+## Location - Data
 
 All fields are compulsory unless otherwise stated
 | Field | Notes |
@@ -179,14 +180,14 @@ All fields are compulsory unless otherwise stated
 | State |  |
 | Post Code |  |
 
-## Branch - Operations
+## Location - Operations
 
 | | Admin | Dealer Admin | Dealer |
 | --- | :---: | :---: | :---: |
-| Can create a new branch | ✓ <sup>1 | ✓ <sup>2 | x |
-| Can edit a branch | ✓ <sup>1 | ✓ <sup>2 | x |
-| Can archive a branch | ✓ <sup>1 | ✓ <sup>2 | x |
-| Can view branches | ✓ <sup>1 | ✓ <sup>2 | ✓ <sup>2 |
+| Can create a new location | ✓ <sup>1 | ✓ <sup>2 | x |
+| Can edit a location | ✓ <sup>1 | ✓ <sup>2 | x |
+| Can archive a location | ✓ <sup>1 | ✓ <sup>2 | x |
+| Can view locations | ✓ <sup>1 | ✓ <sup>2 | ✓ <sup>2 |
 
 (1) For any dealership  
 (2) For the same dealership as that user  
@@ -210,7 +211,7 @@ All fields are compulsory unless otherwise stated
 | State |  |
 | Post Code |  |
 | Dealership | Don't want dealers from one dealership to be able to access customer details from another dealership. Hence customer details should be tied to a dealership. See [Dealership](#dealership) for more. |
-| Branch | See [Branch](#branch) |
+| Location | See [Location](#location) |
 
 ## Customer - Operations
 
@@ -260,6 +261,7 @@ All fields are compulsory unless otherwise stated.
 | Name |  |
 | Wholesale Price |  |
 | Recommended Retail Price |  |
+| Image | Optional |
 
 ## Option - Operations
 
@@ -297,10 +299,11 @@ All fields are compulsory unless otherwise stated.
 | Total Price | <ul><li>Total price should be a separate value calculated as the sum of the wholesale price of the machine and options</li><li>If the price of a machine or option is edited in the future, it should not retroactively affect the value of orders generated in the past</li></ul> |
 | Order Status | <ul><li>See [Order - Status](#order---status)</li></ul> |
 | Dealership | <ul><li>See [Dealership](#dealership)</li></ul> |
-| Branch | <ul><li>See [Branch](#branch)</li></ul> |
-| Order Status Update Log | <ul><li>Each time the status of an order is updated, this should be recorded</li><li>This includes the order being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include what the order status was previously, what the the order status was changed to, a timestamp and the user that updated the order status</li></ul> |
+| Location | <ul><li>See [Location](#location)</li></ul> |
+| Order Status Update Log | <ul><li>Each time the status of an order is updated, the details of the update should be recorded</li><li>This includes the order being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>This includes an order being archived</li><li>Each record should include what the order status was previously, what the the order status was changed to, a timestamp and the user that updated the order status</li></ul> |
 | Sale | <ul><li>Optional</li><li>If there is no sale, this will be considered a "stock" machine</li><li>See [Sale](#sale)</li></ul> |
-
+| Notes | <ul><li>Optional</li><li>Simple text for any notes related to the order</li></ul> |
+| Machine Serial Number | <ul><li>A unique ID number for each physical machine that is built. This is produced on the Roesner production system and manually transferred to thi system</li><li>Optional before order status has been set to `In Production`</li><li>Mandatory to set order status to `In Production`</li></ul> |
 
 ## Order - Status
 
@@ -309,53 +312,124 @@ An order status can be set to one of the statuses below.
 | Status | Description |
 |---|---|
 | Draft | The order has been created, but may require further edits |
-| Placed | The order has been finalised and has been submitted to Roesner's |
-| Ordered | Order has been accepted by Roesner's and order details have been entered into the Roesner production system |
-| In Production | Order has begun production |
-| Ready For Delivery | Order has finished production and is awaiting delivery |
-| In Transit | Order is currently in transit to the dealership / branch |
-| Delivered | Order has been delivered to the dealership / branch |
+| Placed | The order has been finalised by the dealer and has been submitted to Roesner's. It has not yet been accepted by Roesner's |
+| In Production | Order has been accepted by Roesner's and order details have been entered into the Roesner production system |
+| In Transit | Order is currently in transit to the dealership / location |
+| Delivered | Order has been delivered to the dealership / location |
 
 ## Order - Workflow
 
 ```mermaid
 flowchart TD
-    A([Dealer generates an order. Order status is Draft.]) --> B{Dealer wishes to continue with order?}
-    B -->|Yes| C[Dealer sets order status to Placed]
-    B -->|No| D([Dealer deletes order])
-    C --> E[Admin enters details into Roesner production system and sets order status to Accepted.]
-    E --> F[Order begins production. Admin sets order status to In Production.]
-    F --> G[Order completes production. Admin sets order status to Ready For Delivery.]
-    G --> H[Order is collected for delivery. Admin sets order status to In Transit.]
-    H --> I([Order is received. Admin sets order status to Delivered? Should a dealer do this instead?])
+    A([User starts a new order. Order status is Draft.]) --> B{User selects option for ''How to create order?''}
+    B -->|From Scratch| C{User selects option for ''Who is the order for?''}
+    C -->|Stock| D[User is presented with the text ''Select a location'' and a method to select from all available locations for the dealership that the user belongs to]
+    D --> E[User selects a location]
+    E --> S[User is presented with the text ''Select a contact'' and a method to select from all users associated with the selected location]
+    S --> T[User selects a user to act as a contact]
+    C -->|Customer| F[User is presented with the text ''Select a customer'' and a method to select from all available customers for the dealership that the user belongs to]
+    F --> G[User selects a customer]
+    G --> H[User is presented with the text ''Select a location'' and a method to select from all available locations for the selected customer]
+    H --> I[User selects a location]
+    I --> J[User is presented with the text ''Select a contact'' and a method to select from all available contacts for the selected location]
+    J --> K[User selects a contact]
+    K --> L[User is presented with the text ''Select a machine'' and a method to select from all available machines]
+    T --> L
+    L --> M[User selects a machine]
+    M --> N[User is presented with the text ''Select options'' and a method to select from all available options for the selected machine]
+    N --> O[User selects options]
+    O --> b
+    
+    B -->|From Quote| P[Dealer is presented with a method to select from all available quotes that are in Accepted status]
+    P --> Q[User selects a quote]
+    Q --> R[Order is automatically populated with details from the quote]
+    R --> b
+    
+    b[User clicks a button labelled ''Place Order'']
+    b --> c{User is presented with modal ''Are sure you wish to continue? This will place an order with Roesner's and can not be undone.''}
+    c -->|Place Order| d[Current modal closes. A new modal appears with the text ''Order has been placed.''. Order status is automatically set to Placed.]
+    c -->|Do Not Place Order| e([Modal closes])
+    d --> f[Admin navigates to Order section on dealer portal, clicks on order and manually transfers order details into the Roesner production system. The Roesner production system generates a serial number for the machine.]
+    f --> g[Admin clicks a button labelled ''Confirm Order'' on the order details page.]
+    g --> h{Admin is presented with a modal which contains text ''Enter serial number'' and a text input for the serial number}
+    h --> |Confirm order| i[Order status is automatically set to In Production. Modal closes. A new modal appears with the text ''Order has been confirmed.''.]
+    h --> |Cancel| j([Modal closes])
+    i --> k[Order is collected for delivery from Roesner's. Admin navigates to Order section on dealer portal, clicks on order and clicks button labelled ''Confirm Order Is In Transit''.]
+    k --> l{Admin is presented with a modal which contains text ''Confirm Order Is In Transit. This will notify dealership.''}
+    l --> |Confirm| m[Order status is automatically set to In Transit. Modal closes. A new modal appears with the text ''Order has been marked as In Transit.''.]
+    l --> |Cancel| n([Modal closes])
+    m --> o[Order is received by dealership. User navigates to Order section on dealer portal, clicks on order and clicks button labelled ''Confirm Order Has Been Delivered''.]
+    o --> p{User is presented with a modal which contains text ''Confirm Order Has Been Delivered''}
+    p --> |Confirm| q([Order status is automatically set to Delivered. Modal closes. A new modal appears with the text ''Order has been marked as Delivered.''.])
+    p --> |Cancel| r([Modal closes])
 ```
+
+### Workflow Notes
+
+- Saving a draft
+    - There is a button labelled "Save Draft"
+    - At any point during the order creation process, this button may be clicked
+    - Clicking this button saves the current state of the order
+    - Once an order status has been set to anything other than `Draft`, this button is no longer available
+- Cancelling an order
+    - There is a button labelled "Cancel Order"
+    - At any point during the order creation process, this button may be clicked
+    - Clicking this button causes a modal to appear
+        - The modal contains the text "Are you sure you want to cancel this order? It will be permanently removed."
+        - The modal contains two buttons, "Cancel Order" and "Do Not Cancel"
+        - Clicking "Cancel Order" aarchives the order and returns the user to the Orders section of the portal
+        - Clicking "Do Not Cancel" closes the modal
+    - Once an order status has been set to anything other than `Draft`, the "Cancel Order" button is no longer available to Dealer and Dealer Admin level users
+    - An order can be cancelled by an 
+- Placing an order
+    - There is a button labelled "Place Order"
+    - If generating an order from a quote, this button is disabled until a quote is selected
+    - If generating an order from scratch, this button is disabled until a machine is selected
+    - Once an order status has been set to anything other than `Draft`, this button is no longer available
+- Live order summary
+    - A live summary of the order is displayed on the screen
+    - "Live" means that as a machine or option is selected, the order summary is automatically updated to reflect the current state of the order
+    - The order summary should display who the order is for, the name and wholesale price of the selected machine, the name and wholeprices of any options that are selected, and the sum of the prices of the machine and options.
+
+## Order - UI
+
+- For selecting between a small number options (*e.g.* choosing between creating an order from a quote or from scratch), prefer multiple buttons over dropdowns. An example is provided below
+<br>  
+![multiple choice ui example](multiple-choice-example.png)
+
+- For each option listed, an image of the option should be displayed. An example is provided below
+<br>  
+![alt text](option-images-example.png)
+
+- Each listed option should also display name, wholesale price, reference number and a more info link that links to the relevant section of the brochure page
 
 ## Order - Operations
 
 |  | Admin | Dealer Admin | Dealer |
 | --- | :---: | :---: | :---: |
 | Can create a new order | ✓ | ✓ | ✓ |
-| Can edit order details while in Draft status | ✓ | ✓ | ✓ |
-| Can edit order details while in status other than Draft | x | x | x |
-| Can update order status from Drafted to Placed | ✓ | ✓ | ✓ |
-| Can update order status from Placed to Accepted | ✓ | x | x |
-| Can update order status from Accepted to In Production | ✓ | x | x |
-| Can update order status from In Production to Ready For Delivery | ✓ | x | x |
-| Can update order status from Ready For Delivery to In Transit | ✓ | x | x |
-| Can update order status from Ready For In Transit to Delivered | ✓ | x | x |
-| Can archive an order while in Draft status | ✓ | ✓ | ✓ |
-| Can archive an order while in status other than Draft | x | x | x |
+| Can edit order details while in `Draft` status | ✓ | ✓ | ✓ |
+| Can edit order details while in status other than `Draft` | x | x | x |
+| Can set order status from `Draft` to `Placed` | ✓ | ✓ | ✓ |
+| Can set order status from `Placed` to `In Production` | ✓ | x | x |
+| Can set order status from `In Production` to `In Transit` | ✓ | x | x |
+| Can set order status from `In Transit` to `Delivered` | ✓ | ✓ | ✓ |
+| Can archive an order while in `Draft` status | ✓ | ✓ | ✓ |
+| Can archive an order while in `Placed`, `In Production` or `In Transit` status | ✓ | x | x |
+| Can archive an order while in `Delivered` status | x | x | x |
 | Can view orders | ✓ <sup>1, 3, 4 | ✓ <sup>2, 3 | ✓ <sup>2, 3 |
-| Can download orders data as csv | ✓ | x | x |
+| Can download order data as csv | ✓ | x | x |
+| Can view Order Status Update Log | ✓ | x | x |
 
 (1) For any dealership  
 (2) For the dealership that the user belongs to  
-(3) Can filter by time created and status  
+(3) Can filter by time created, status and customer  
 (4) Can filter by dealership
 
 ## Order - Notifications
 
-- All admins receive a notification when order status is updated to Placed
+- All admins receive a notification when order status is set to `Placed`
+- All users from the location associated with an order receive a notification when the order status is set to `In Producation`, `In Transit` or `Delivered`
 
 # Sale
 
@@ -375,7 +449,7 @@ All fields are compulsory unless otherwise stated.
 | Sale Status | <ul><li>See [Sale - Status](#sale---status)</li></ul> |
 | Customer | <ul><li>This includes all of that customer details (*i.e.* name, address, *etc.*)</li><li>See [Customer](#customer)</li></ul> |
 | Dealership | <ul><li>See [Dealership](#dealership)</li></ul> |
-| Branch | <ul><li>See [Branch](#branch)</li></ul> |
+| Location | <ul><li>See [Location](#location)</li></ul> |
 | Sale Status Update Log | <ul><li>Each time the status of a sale is updated, this should be recorded</li><li>This includes the sale being created for the first time (*i.e.* status updated from nothing to Draft)</li><li>Each record should include a what the sale status was previously, what the the sale status was changed to, a timestamp and the user that updated the sale status</li></ul> |
 
 ## Sale - Status
@@ -433,7 +507,7 @@ flowchart TD
 ### Customer Facing
 
 The quote that the customer receives
-- Dealership / branch name, address and contact details are displayed on the sale
+- Dealership / location name, address and contact details are displayed on the sale
 - Dealership logo is displayed on the sale if a logo has been provided
 - Sale contents are contained in a table
 - Table has a column for "Selected", "Name", "Price" and "More Info"
@@ -525,14 +599,14 @@ flowchart TD
 - If so, what are we displaying here?
 
 ## User
-- Can a user be attached to multiple branches?
+- Can a user be attached to multiple locations? - yes
 - Have the ability to show the password text by the user clicking a button?
     - Is this viewing your own password?
     - Is this an admin being able to view any users password?
     - Do we need this if a user can reset their own password?
 
 ## Stock Machines
-- Need the ability to transfer stock from one branch to another?
+- Need the ability to transfer stock from one location to another?
 - Should be placed on hold when a sale / quote is generated
 - Should we store the price of the machine at purchase from Roesner's?
     - If a stock machine is bought from Roesner's for $30,000 and later the prices for that same machine increase, should the price for that machine be the new updated price? Or should it be the original price it was pruchased for?
@@ -554,12 +628,6 @@ flowchart TD
 - Is there a separate section for notifications?
 - Can they be dismissed?
 - Should emails be sent too?
-
-## Order
-- should admin be able to cancel order after it has been placed?
-- should dealer be able to cancel sale after it has been placed but before it has been ordered / added to the production system?
-- should there be some extra pop-up like "are you sure you want to place this order? Yes / no"
-- should dealers receive a notification for order updates?
 
 ## Sale
 - Should you be able to set a default value for predelivery per dealership?
